@@ -1,0 +1,65 @@
+name: Auto-update Formula
+
+on:
+  schedule:
+    # 每天 UTC 08:00 检查一次（北京时间 16:00）
+    - cron: "0 8 * * *"
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check latest release
+        id: check
+        run: |
+          # 获取 playit-agent 最新 tag
+          LATEST=$(curl -sf https://api.github.com/repos/playit-cloud/playit-agent/releases/latest \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            | jq -r '.tag_name')
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+
+          # 读取当前 formula 里的版本
+          CURRENT=$(grep '^  version ' Formula/playit.rb | sed 's/.*"\(.*\)"/\1/')
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+
+          echo "Latest upstream: $LATEST  |  Current formula: $CURRENT"
+
+      - name: Update formula
+        if: steps.check.outputs.latest != format('v{0}', steps.check.outputs.current)
+        run: |
+          LATEST_TAG="${{ steps.check.outputs.latest }}"
+          VERSION="${LATEST_TAG#v}"   # 去掉 v 前缀
+          URL="https://github.com/playit-cloud/playit-agent/archive/refs/tags/${LATEST_TAG}.tar.gz"
+
+          echo "Updating to $VERSION ..."
+
+          # 计算新 sha256
+          SHA256=$(curl -sL "$URL" | sha256sum | awk '{print $1}')
+          echo "sha256: $SHA256"
+
+          # 替换 formula 中的 url / sha256 / version
+          sed -i "s|^  url .*|  url \"${URL}\"|" Formula/playit.rb
+          sed -i "s|^  sha256 .*|  sha256 \"${SHA256}\"|" Formula/playit.rb
+          sed -i "s|^  version .*|  version \"${VERSION}\"|" Formula/playit.rb
+
+          echo "Updated Formula/playit.rb:"
+          head -10 Formula/playit.rb
+
+      - name: Commit and push
+        if: steps.check.outputs.latest != format('v{0}', steps.check.outputs.current)
+        run: |
+          VERSION="${LATEST_TAG#v}"
+          LATEST_TAG="${{ steps.check.outputs.latest }}"
+          VERSION="${LATEST_TAG#v}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/playit.rb
+          git commit -m "chore: update playit to ${LATEST_TAG}"
+          git push
