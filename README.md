@@ -45,7 +45,7 @@ brew upgrade playit
 
 ## Version
 
-Current formula tracks **v0.17.1** of [playit-cloud/playit-agent](https://github.com/playit-cloud/playit-agent).
+This formula automatically tracks the latest release of [playit-cloud/playit-agent](https://github.com/playit-cloud/playit-agent) via a daily GitHub Actions check.
 
 ## License
 
