@@ -1,10 +1,10 @@
 class Playit < Formula
   desc "playit.gg tunnel client - expose self-hosted game servers to the internet"
   homepage "https://playit.gg"
-  url "https://github.com/playit-cloud/playit-agent/archive/refs/tags/v1.0.9.tar.gz"
-  sha256 "9f32e5be5781e6d8918a8478b180a5a7552a83de880601910a6e71f02de0912c"
+  url "https://github.com/playit-cloud/playit-agent/archive/refs/tags/v1.0.10.tar.gz"
+  sha256 "52b431a861c143f3fc78bfce8d7d5862bf865bc88da584cafb62a5fec39c0df4"
   license "BSL-1.1"
-  version "1.0.9"
+  version "1.0.10"
 
   head "https://github.com/playit-cloud/playit-agent.git", branch: "master"
 
