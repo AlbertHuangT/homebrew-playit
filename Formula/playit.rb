@@ -11,12 +11,13 @@ class Playit < Formula
   depends_on "rust" => :build
 
   def install
-    system "cargo", "install", *std_cargo_args(root: prefix, path: "packages/agent_cli")
+    system "cargo", "install", *std_cargo_args(root: prefix, path: "packages/playit-cli")
+    system "cargo", "install", *std_cargo_args(root: prefix, path: "packages/playitd")
     # Create a convenience alias so both `playit` and `playit-cli` work
     bin.install_symlink bin/"playit-cli" => "playit" if (bin/"playit-cli").exist?
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/playit-cli --version 2>&1", 1)
+    assert_match version.to_s, shell_output("#{bin}/playit-cli version")
   end
 end
